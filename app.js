@@ -4,17 +4,15 @@ if (process.env.NODE_ENV !== 'production') {
 
 const express = require('express')
 const cors = require('cors')
-const helpers = require('./_helpers')
+const http = require('http')
 const passport = require('./config/passport')
 const routes = require('./routes')
 
 const app = express()
+const server = http.createServer(app)
+// enable websocket function
+require('./config/socket-io')(server)
 const PORT = process.env.PORT || 3000
-
-// use helpers.getUser(req) to replace req.user
-// function authenticated(req, res, next){
-//   passport.authenticate('jwt', { ses...
-// }
 
 app.use(cors())
 app.use(express.urlencoded({ extended: true }))
@@ -22,7 +20,7 @@ app.use(express.json())
 app.use(passport.initialize())
 app.use(routes)
 
-app.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`))
+server.listen(PORT, () => console.log(`Example app listening on port ${PORT}!`))
 
 
-module.exports = app
+module.exports = server
