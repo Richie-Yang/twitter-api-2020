@@ -4,16 +4,24 @@ const { Message } = require('../../models')
 module.exports = (io, socket) => {
   const fetchUsers = () => {
     // fetch existing users and push into an array
-    const users = [];
+    const users = []
+    const userSet = new Set()
+
     for (let [id, socket] of io.of("/").sockets) {
-      users.push({
-        UserId: socket.user.id,
-        name: socket.user.name,
-        account: socket.user.account,
-        avatar: socket.user.avatar,
-        socketId: socket.id,
-      })
+      const { user } = socket
+      
+      if (!userSet.has(user.id)) {
+        users.push({
+          UserId: user.id,
+          name: user.name,
+          account: user.account,
+          avatar: user.avatar,
+          socketId: socket.id,
+        })
+        userSet.add(user.id)
+      }
     }
+
     io.emit("users", users)
   }
 

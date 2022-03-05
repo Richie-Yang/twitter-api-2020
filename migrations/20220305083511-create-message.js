@@ -12,19 +12,22 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       senderSocketId: {
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING
       },
       receiverId: {
         type: Sequelize.INTEGER
       },
       receiverSocketId: {
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING
       },
       message: {
         type: Sequelize.TEXT
       },
       chatType: {
         defaultValue: 'public',
+        type: Sequelize.STRING
+      },
+      roomId: {
         type: Sequelize.STRING
       },
       createdAt: {

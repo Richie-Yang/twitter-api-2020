@@ -8,11 +8,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
     },
     senderId: DataTypes.INTEGER,
-    senderSocketId: DataTypes.INTEGER,
+    senderSocketId: DataTypes.STRING,
     receiverId: DataTypes.INTEGER,
-    receiverSocketId: DataTypes.INTEGER,
+    receiverSocketId: DataTypes.STRING,
     message: DataTypes.TEXT,
     chatType: DataTypes.STRING,
+    roomId: DataTypes.STRING,
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE
   }, {
