@@ -32,8 +32,8 @@ module.exports = (io, socket) => {
   const connect = () => {
     console.log(`${socket.user.name} is connected`)
     socket.broadcast.emit(
-      'public message',
-      `${socket.user.name} is connected`
+      'user connect',
+      `${socket.user.name} 已經上線。`
     )
     fetchUsers()
   }
@@ -41,8 +41,8 @@ module.exports = (io, socket) => {
   const disconnect = () => {
     console.log(`${socket.user.name} disconnected`)
     socket.broadcast.emit(
-      'public message', 
-      `${socket.user.name} disconnected`
+      'user disconnect', 
+      `${socket.user.name} 已經離線。`
     )
     fetchUsers()
   }
