@@ -7,9 +7,9 @@ module.exports = (io, socket) => {
     const users = []
     const userSet = new Set()
 
-    for (let [id, socket] of io.of("/").sockets) {
-      const { user } = socket
-      
+    for (let [id, childSocket] of io.of("/").sockets) {
+      const { user } = childSocket
+
       if (!userSet.has(user.id)) {
         users.push({
           UserId: user.id,
@@ -23,6 +23,40 @@ module.exports = (io, socket) => {
     }
 
     io.emit("users", users)
+  }
+
+  const renderUserSet = () => {
+    const userSet = new Set()
+    for (let [id, childSocket] of io.of("/").sockets) {
+      userSet.add(childSocket.user.id)
+    }
+    return userSet
+  }
+
+  const connect = () => {
+    const userSet = renderUserSet()
+
+    if (userSet.has(socket.user.id)) {
+      socket.broadcast.emit(
+        'user connect',
+        `${socket.user.name} 已經上線。`
+      )
+      // update all online users again
+      fetchUsers()
+    }
+  }
+
+  const disconnect = () => {
+    const userSet = renderUserSet()
+
+    if (userSet.has(socket.user.id)) {
+      socket.broadcast.emit(
+        'user disconnect',
+        `${socket.user.name} 已經離線。`
+      )
+      // update all online users again
+      fetchUsers()
+    }
   }
 
   const publicMessage = async (message) => {
@@ -66,32 +100,11 @@ module.exports = (io, socket) => {
     })
   }
 
-  const connect = () => {
-    console.log(`${socket.user.name} is connected`)
-    socket.broadcast.emit(
-      'user connect',
-      `${socket.user.name} 已經上線。`
-    )
-    // update all online users again
-    fetchUsers()
-  }
-
-  const disconnect = () => {
-    console.log(`${socket.user.name} disconnected`)
-    socket.broadcast.emit(
-      'user disconnect', 
-      `${socket.user.name} 已經離線。`
-    )
-    // update all online users again
-    fetchUsers()
-  }
-
   return {
-    fetchUsers,
+    connect,
+    disconnect,
     publicMessage,
     renderPublicMessages,
-    privateMessage,
-    connect,
-    disconnect
+    privateMessage
   }
 }
