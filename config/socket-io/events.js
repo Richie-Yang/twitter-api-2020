@@ -8,7 +8,7 @@ module.exports = (io, socket) => {
         name: user.user.name,
       })
     }
-    socket.emit("users", users)
+    io.emit("users", users)
 
     // notify existing users
     socket.broadcast.emit("user connected", {
@@ -34,6 +34,7 @@ module.exports = (io, socket) => {
       'public message', 
       `${socket.user.name} disconnected`
     )
+    fetchUsers()
   }
 
   return {
