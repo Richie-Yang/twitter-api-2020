@@ -6,12 +6,11 @@ module.exports = (io, socket) => {
     // fetch existing users and push into an array
     const users = [];
     for (let [id, socket] of io.of("/").sockets) {
-      const { socketId, user } = socket
       users.push({
-        UserId: user.id,
-        name: user.name,
-        avatar: user.avatar,
-        socketId,
+        UserId: socket.user.id,
+        name: socket.user.name,
+        avatar: socket.user.avatar,
+        socketId: socket.id,
       })
     }
     io.emit("users", users)
