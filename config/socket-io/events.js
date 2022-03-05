@@ -17,9 +17,8 @@ module.exports = (io, socket) => {
   }
 
   const publicMessage = async (message) => {
-    const { id, avatar } = await User.findByPk(senderId, { raw: true })
-    const senderId = id
-    const senderAvatar = avatar
+    const senderId = socket.user.id
+    const senderAvatar = socket.user.avatar
     const senderSocketId = socket.id
     const createdAt = new Date()
 
