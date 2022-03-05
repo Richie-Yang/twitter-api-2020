@@ -9,31 +9,28 @@ module.exports = (io, socket) => {
       })
     }
     io.emit("users", users)
+  }
 
-    // notify existing users
-    socket.broadcast.emit("user connected", {
-      userID: socket.user.id,
-      username: socket.user.name,
+  const publicMessage = message => {
+    io.emit('public message', {
+      UserId: socket.user.id,
+      socketId: socket.id,
+      message: message,
+      createdAt: new Date()
     })
+  },
 
+  const connect = () => {
+    console.log(`${socket.user.name} is connected`)
     socket.broadcast.emit(
       'public message',
       `${socket.user.name} is connected`
     )
-  }
-
-  const chat = msg => {
-    console.log(`${msg} from ${socket.user.name}`)
-    
-    io.emit(
-      'public message', 
-      `${msg} --- 來自使用者名稱: ${socket.user.name}; 使用者的 socket.id ${socket.id}`
-    )
+    fetchUsers
   }
 
   const disconnect = () => {
     console.log(`${socket.user.name} disconnected`)
-
     socket.broadcast.emit(
       'public message', 
       `${socket.user.name} disconnected`
@@ -43,7 +40,8 @@ module.exports = (io, socket) => {
 
   return {
     fetchUsers,
-    chat,
+    publicMessage,
+    connect,
     disconnect
   }
 }

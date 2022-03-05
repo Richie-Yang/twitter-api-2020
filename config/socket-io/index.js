@@ -10,9 +10,11 @@ module.exports = (server) => {
   io.use((socket, next) => {
     const { handshake } = socket
     console.log(handshake)
+    
     if (!handshake.auth || !handshake.auth.token) {
       throw new Error('尚未授權，禁止存取!')
     }
+    console.log(handshake.auth.token)
 
     // if token is found inside socket data
     // then use jwt module to decode it and 
@@ -20,7 +22,7 @@ module.exports = (server) => {
     jwt.verify(handshake.auth.token, process.env.JWT_SECRET,
       async (err, jwtPayload) => {
         try {
-          // if (err) throw new Error('尚未授權，禁止存取!')
+          if (err) throw new Error('尚未授權，禁止存取!')
 
           const user = await User.findByPk(jwtPayload.id)
           if (!user) throw new Error('尚未授權，禁止存取!')
@@ -35,10 +37,11 @@ module.exports = (server) => {
   // socket server starts listening for 'connection' event
   io.on('connection', (socket) => {
     const events = require('./events')(io, socket)
-    events.fetchUsers()
+    // events.fetchUsers()
 
     // registered socket events are below
-    socket.on('public message', events.chat)
+    socket.on('connect', events.connect)
+    socket.on('public message', events.publicMessage)
     socket.on('disconnect', events.disconnect)
   })
 }
