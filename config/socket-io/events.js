@@ -36,27 +36,27 @@ module.exports = (io, socket) => {
   const connect = () => {
     const userSet = renderUserSet()
 
-    if (userSet.has(socket.user.id)) {
+    if (!userSet.has(socket.user.id)) {
       socket.broadcast.emit(
         'user connect',
         `${socket.user.name} 已經上線。`
       )
-      // update all online users again
-      fetchUsers()
     }
+    // update all online users again
+    fetchUsers()
   }
 
   const disconnect = () => {
     const userSet = renderUserSet()
 
-    if (userSet.has(socket.user.id)) {
+    if (!userSet.has(socket.user.id)) {
       socket.broadcast.emit(
         'user disconnect',
         `${socket.user.name} 已經離線。`
       )
-      // update all online users again
-      fetchUsers()
     }
+    // update all online users again
+    fetchUsers()
   }
 
   const publicMessage = async (message) => {
