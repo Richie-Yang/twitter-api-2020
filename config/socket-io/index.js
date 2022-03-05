@@ -35,10 +35,9 @@ module.exports = (server) => {
   // socket server starts listening for 'connection' event
   io.on('connection', (socket) => {
     const events = require('./events')(io, socket)
-    // events.fetchUsers()
+    events.connect()
 
     // registered socket events are below
-    socket.on('connect', events.connect)
     socket.on('public message', events.publicMessage)
     socket.on('private message', events.privateMessage)
     socket.on('disconnect', events.disconnect)
