@@ -1,6 +1,9 @@
+const { Message } = require('../../models')
+
+
 module.exports = (io, socket) => {
   const fetchUsers = () => {
-    // fetch existing users
+    // fetch existing users and push into an array
     const users = [];
     for (let [id, socket] of io.of("/").sockets) {
       const { socketId, user } = socket
@@ -13,13 +16,20 @@ module.exports = (io, socket) => {
     io.emit("users", users)
   }
 
-  const publicMessage = message => {
-    io.emit('public message', {
-      UserId: socket.user.id,
-      socketId: socket.id,
-      message: message,
-      createdAt: new Date()
-    })
+  const publicMessage = async (message) => {
+    const { id, avatar } = await User.findByPk(senderId, { raw: true })
+    const senderId = id
+    const senderAvatar = avatar
+    const senderSocketId = socket.id
+    const createdAt = new Date()
+
+    // pre-made object for later DB operation and io.emit
+    const messageObj = {
+      senderId, senderSocketId, message, createdAt
+    }
+
+    await Message.create(messageObj)
+    io.emit('public message', { ...messageObj, senderAvatar })
   }
 
   const privateMessage = ({content, to}) => {
@@ -35,6 +45,7 @@ module.exports = (io, socket) => {
       'user connect',
       `${socket.user.name} 已經上線。`
     )
+    // update all online users again
     fetchUsers()
   }
 
@@ -44,6 +55,7 @@ module.exports = (io, socket) => {
       'user disconnect', 
       `${socket.user.name} 已經離線。`
     )
+    // update all online users again
     fetchUsers()
   }
 
