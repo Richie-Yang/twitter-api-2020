@@ -9,8 +9,9 @@ module.exports = (io, socket) => {
       const { socketId, user } = socket
       users.push({
         UserId: user.id,
+        name: user.name,
+        avatar: user.avatar,
         socketId,
-        name: user.name
       })
     }
     io.emit("users", users)
@@ -29,6 +30,25 @@ module.exports = (io, socket) => {
 
     await Message.create(messageObj)
     io.emit('public message', { ...messageObj, senderAvatar })
+  }
+
+  const renderPublicMessages = async () => {
+    // retrieve all public messages from database first
+    const messages = await Message.findAll({
+      include: [{ model: User, as: 'Receiver' }],
+      where: { chatType: 'public' },
+      attributes: [
+        'senderId', 'senderSocketId', 'message', 'createdAt'
+      ],
+      nest: true
+    })
+
+    const responseData = messages.map(message => ({
+      ...message.toJSON()
+    }))
+
+    // send to all other online users except for himself/herself
+    socket.emit('render public messages', responseData)
   }
 
   const privateMessage = ({content, to}) => {
@@ -61,6 +81,7 @@ module.exports = (io, socket) => {
   return {
     fetchUsers,
     publicMessage,
+    renderPublicMessages,
     privateMessage,
     connect,
     disconnect

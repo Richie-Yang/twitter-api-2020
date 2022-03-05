@@ -39,6 +39,7 @@ module.exports = (server) => {
 
     // registered socket events are below
     socket.on('public message', events.publicMessage)
+    socket.on('render public messages', events.renderPublicMessages)
     socket.on('private message', events.privateMessage)
     socket.on('disconnect', events.disconnect)
   })
