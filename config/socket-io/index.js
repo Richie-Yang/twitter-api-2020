@@ -22,7 +22,7 @@ module.exports = (server) => {
         try {
           if (err) throw new Error('尚未授權，禁止存取!')
 
-          const user = await User.findByPk(jwtPayload.id)
+          const user = await User.findByPk(jwtPayload.id, { raw: true })
           if (!user) throw new Error('尚未授權，禁止存取!')
 
           socket.user = user
