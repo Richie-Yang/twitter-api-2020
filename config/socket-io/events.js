@@ -2,10 +2,12 @@ module.exports = (io, socket) => {
   const fetchUsers = () => {
     // fetch existing users
     const users = [];
-    for (let [_, user] of io.of("/").sockets) {
+    for (let [id, socket] of io.of("/").sockets) {
+      const { socketId, user } = socket
       users.push({
-        id: user.user.id,
-        name: user.user.name,
+        UserId: user.id,
+        socketId,
+        name: user.name
       })
     }
     io.emit("users", users)
@@ -20,13 +22,20 @@ module.exports = (io, socket) => {
     })
   }
 
+  const privateMessage = ({content, to}) => {
+    socket.to(to).emit("private message", {
+      content,
+      from: socket.id,
+    })
+  }
+
   const connect = () => {
     console.log(`${socket.user.name} is connected`)
     socket.broadcast.emit(
       'public message',
       `${socket.user.name} is connected`
     )
-    fetchUsers
+    fetchUsers()
   }
 
   const disconnect = () => {
@@ -41,6 +50,7 @@ module.exports = (io, socket) => {
   return {
     fetchUsers,
     publicMessage,
+    privateMessage,
     connect,
     disconnect
   }

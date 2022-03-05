@@ -9,12 +9,10 @@ module.exports = (server) => {
   // websocket middleware for authenticating signed-in user
   io.use((socket, next) => {
     const { handshake } = socket
-    console.log(handshake)
     
     if (!handshake.auth || !handshake.auth.token) {
       throw new Error('尚未授權，禁止存取!')
     }
-    console.log(handshake.auth.token)
 
     // if token is found inside socket data
     // then use jwt module to decode it and 
@@ -42,6 +40,7 @@ module.exports = (server) => {
     // registered socket events are below
     socket.on('connect', events.connect)
     socket.on('public message', events.publicMessage)
+    socket.on('private message', events.privateMessage)
     socket.on('disconnect', events.disconnect)
   })
 }
