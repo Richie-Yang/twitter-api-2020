@@ -18,7 +18,7 @@ module.exports = (io, socket) => {
       message: message,
       createdAt: new Date()
     })
-  },
+  }
 
   const connect = () => {
     console.log(`${socket.user.name} is connected`)
