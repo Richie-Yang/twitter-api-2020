@@ -9,6 +9,7 @@ module.exports = (server) => {
   // websocket middleware for authenticating signed-in user
   io.use((socket, next) => {
     const { handshake } = socket
+    console.log(handshake)
     if (!handshake.auth || !handshake.auth.token) {
       throw new Error('尚未授權，禁止存取!')
     }
@@ -19,7 +20,7 @@ module.exports = (server) => {
     jwt.verify(handshake.auth.token, process.env.JWT_SECRET,
       async (err, jwtPayload) => {
         try {
-          if (err) throw new Error('尚未授權，禁止存取!')
+          // if (err) throw new Error('尚未授權，禁止存取!')
 
           const user = await User.findByPk(jwtPayload.id)
           if (!user) throw new Error('尚未授權，禁止存取!')
