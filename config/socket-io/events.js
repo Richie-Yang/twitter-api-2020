@@ -23,6 +23,8 @@ module.exports = (io, socket) => {
   }
 
   const chat = msg => {
+    console.log(`${msg} from ${socket.user.name}`)
+    
     io.emit(
       'public message', 
       `${msg} --- 來自使用者名稱: ${socket.user.name}; 使用者的 socket.id ${socket.id}`
@@ -30,6 +32,8 @@ module.exports = (io, socket) => {
   }
 
   const disconnect = () => {
+    console.log(`${socket.user.name} disconnected`)
+
     socket.broadcast.emit(
       'public message', 
       `${socket.user.name} disconnected`
