@@ -9,6 +9,7 @@ module.exports = (io, socket) => {
       users.push({
         UserId: socket.user.id,
         name: socket.user.name,
+        account: socket.user.account,
         avatar: socket.user.avatar,
         socketId: socket.id,
       })
