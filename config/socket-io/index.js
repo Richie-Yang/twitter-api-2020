@@ -3,7 +3,7 @@ const { Server } = require("socket.io")
 const { User } = require('../../models')
 
 
-function socketIo (server) {
+module.exports = (server) => {
   const io = new Server(server, { cors: { origin: '*' } })
 
   // websocket middleware for authenticating signed-in user
@@ -16,7 +16,7 @@ function socketIo (server) {
     // if token is found inside socket data
     // then use jwt module to decode it and 
     // search for corresponding user from database
-    jwt.verify(handshake.auth.token, process.env.JWT_SECRET, 
+    jwt.verify(handshake.auth.token, process.env.JWT_SECRET,
       async (err, jwtPayload) => {
         try {
           if (err) throw new Error('尚未授權，禁止存取!')
@@ -27,19 +27,17 @@ function socketIo (server) {
           socket.user = user
           return next()
 
-        } catch (err) { next(err) }
+        } catch (err) { console.error(err) }
       })
   })
 
   // socket server starts listening for 'connection' event
   io.on('connection', (socket) => {
     const events = require('./events')(io, socket)
-    socket.emit('chat', `user ${socket.id} connected`)
+    events.fetchUsers()
 
     // registered socket events are below
-    socket.on('chat', events.chat)
+    socket.on('public message', events.chat)
     socket.on('disconnect', events.disconnect)
   })
 }
-
-module.exports = socketIo
