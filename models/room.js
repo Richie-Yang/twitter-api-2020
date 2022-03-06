@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
   });
   Room.associate = function (models) {
     // associations can be defined here
-    Room.hasMany(models.Message, { foreignKey: 'RoomId' })
+    Room.hasMany(models.Message, { foreignKey: 'roomId' })
   };
   return Room;
 };

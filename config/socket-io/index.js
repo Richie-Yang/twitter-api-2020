@@ -40,17 +40,20 @@ module.exports = (server) => {
     const events = require('./events')(io, socket)
     events.connect()
 
-
     // registered socket events are below
-    socket.on('public message', events.publicMessage)
-    // socket.on('render public messages', events.renderPublicMessages)
-    socket.on('private message', events.privateMessage)
     socket.on('disconnect', events.disconnect)
-    socket.on('leave chatroom', events.leaveChatroom)
-    socket.on('enter chatroom', events.enterChatroom)
 
-    // socket.on('user disconnect', events.disconnect)
-    // socket.on('render chatroom', events.renderChatroom)
+    // public message
+    socket.on('enter chatroom', events.enterChatroom)
+    socket.on('leave chatroom', events.leaveChatroom)
+    socket.on('public message', events.publicMessage)
+
+    // private message
+    socket.on('to private message', events.toPrivateMessage)
+    socket.on('enter private room', events.enterPrivateRoom)
+    socket.on('private message', events.privateMessage)
+    socket.on('get private message', events.getPrivateMessage)
+
 
   })
 }
