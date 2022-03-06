@@ -9,7 +9,7 @@ module.exports = (server) => {
   // websocket middleware for authenticating signed-in user
   io.use((socket, next) => {
     const { handshake } = socket
-    
+
     if (!handshake.auth || !handshake.auth.token) {
       throw new Error('尚未授權，禁止存取!')
     }
@@ -22,7 +22,10 @@ module.exports = (server) => {
         try {
           if (err) throw new Error('尚未授權，禁止存取!')
 
-          const user = await User.findByPk(jwtPayload.id, { raw: true })
+          const user = await User.findByPk(jwtPayload.id, {
+            raw: true,
+            attributes: { exclude: ['password'] },
+          })
           if (!user) throw new Error('尚未授權，禁止存取!')
 
           socket.user = user
@@ -37,10 +40,17 @@ module.exports = (server) => {
     const events = require('./events')(io, socket)
     events.connect()
 
+
     // registered socket events are below
     socket.on('public message', events.publicMessage)
-    socket.on('render public messages', events.renderPublicMessages)
+    // socket.on('render public messages', events.renderPublicMessages)
     socket.on('private message', events.privateMessage)
     socket.on('disconnect', events.disconnect)
+    socket.on('leave chatroom', events.leaveChatroom)
+    socket.on('enter chatroom', events.enterChatroom)
+
+    // socket.on('user disconnect', events.disconnect)
+    // socket.on('render chatroom', events.renderChatroom)
+
   })
 }

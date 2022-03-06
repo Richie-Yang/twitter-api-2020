@@ -1,4 +1,4 @@
-const { Message } = require('../../models')
+const { Message, User } = require('../../models')
 
 
 module.exports = (io, socket) => {
@@ -8,9 +8,9 @@ module.exports = (io, socket) => {
     const userSet = new Set()
 
     for (let [id, childSocket] of io.of("/").sockets) {
-      const { user } = childSocket
+      const { user, rooms } = childSocket
 
-      if (!userSet.has(user.id)) {
+      if (!userSet.has(user.id) && rooms.has('chatroom')) {
         users.push({
           UserId: user.id,
           name: user.name,
@@ -21,9 +21,34 @@ module.exports = (io, socket) => {
         userSet.add(user.id)
       }
     }
-
     io.emit("users", users)
   }
+
+  const enterChatroom = () => {
+    socket.join("chatroom");
+
+    socket.broadcast.to("chatroom").emit(
+      'user connect',
+      `${socket.user.name} 進入聊天室。`
+    )
+
+    // update all online users again & show history message
+    fetchUsers()
+    renderPublicMessages()
+  }
+
+  const leaveChatroom = () => {
+    socket.leave("chatroom");
+
+    socket.broadcast.to("chatroom").emit(
+      'user disconnect',
+      `${socket.user.name} 離開聊天室。`
+    )
+
+    // update all online users again
+    fetchUsers()
+  }
+
 
   const renderUserSet = () => {
     const userSet = new Set()
@@ -35,27 +60,16 @@ module.exports = (io, socket) => {
 
   const connect = () => {
     const userSet = renderUserSet()
-
-    if (!userSet.has(socket.user.id)) {
-      socket.broadcast.emit(
-        'user connect',
-        `${socket.user.name} 已經上線。`
-      )
-    }
-    // update all online users again
-    fetchUsers()
   }
 
   const disconnect = () => {
-    const userSet = renderUserSet()
+    // const userSet = renderUserSet()
 
-    if (!userSet.has(socket.user.id)) {
-      socket.broadcast.emit(
-        'user disconnect',
-        `${socket.user.name} 已經離線。`
-      )
-    }
-    // update all online users again
+    socket.broadcast.to("chatroom").emit(
+      'user disconnect',
+      `${socket.user.name} 已下線囉。`
+    )
+
     fetchUsers()
   }
 
@@ -79,9 +93,6 @@ module.exports = (io, socket) => {
     const messages = await Message.findAll({
       include: [{ model: User, as: 'Receiver' }],
       where: { chatType: 'public' },
-      attributes: [
-        'senderId', 'senderSocketId', 'message', 'createdAt'
-      ],
       nest: true
     })
 
@@ -93,7 +104,7 @@ module.exports = (io, socket) => {
     socket.emit('render public messages', responseData)
   }
 
-  const privateMessage = ({content, to}) => {
+  const privateMessage = ({ content, to }) => {
     socket.to(to).emit("private message", {
       content,
       from: socket.id,
@@ -105,6 +116,8 @@ module.exports = (io, socket) => {
     disconnect,
     publicMessage,
     renderPublicMessages,
-    privateMessage
+    privateMessage,
+    leaveChatroom,
+    enterChatroom
   }
 }
