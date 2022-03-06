@@ -106,6 +106,7 @@ module.exports = (io, socket) => {
     socket.emit('render public messages', responseData)
   }
 
+  // click private message icon
   const toPrivateMessage = async (userId) => {
     // 如果這個 userId ，不在 room，就創一個 room
     const userOneId = socket.user.id
@@ -129,8 +130,11 @@ module.exports = (io, socket) => {
     return console.log(`exist room : ${room.id}`)
   }
 
+  // enter private room , and get list
   const enterPrivateRoom = async () => {
     const userId = socket.user.id
+    console.log(socket)
+    console.log(userId)
 
     // get rooms 
     const rooms = await Room.findAll({
@@ -142,6 +146,8 @@ module.exports = (io, socket) => {
       },
       raw: true
     })
+
+    console.log(rooms)
     if (rooms.length === 0) return socket.emit('private message', rooms)
 
     // 找出所有使用者
@@ -159,7 +165,20 @@ module.exports = (io, socket) => {
 
     socket.emit('private message list', responseData)
   }
-  const getPrivateMessage = async (roomId) => {
+
+  const leavePrivateRoom = () => {
+    const { room } = socket
+    console.log(room)
+    socket.leave(room);
+
+    io.to(roomId).emit(
+      'user disconnect',
+      `${socket.user.name} 離開聊天室`
+    )
+  }
+
+  // get roomId . put user to room and get history private messages 
+  const getPrivateMessages = async (roomId) => {
     // get room
     const room = await Room.findById(
       roomId, { raw: true }
@@ -167,10 +186,12 @@ module.exports = (io, socket) => {
     console.log(room)
     const senderId = socket.user.id
     const receiverId = senderId === room.userOneId ? room.userTwoId : room.userOneId
-    socket.join(room.id)
+    socket.join(roomId)
 
+    renderPrivateMessages()
   }
 
+  // get history private messages
   const renderPrivateMessages = async (roomId) => {
     // retrieve all public messages from database first
     const messages = await Message.findAll({
@@ -184,9 +205,10 @@ module.exports = (io, socket) => {
     }))
 
     // send to  himself/herself
-    socket.emit('render public messages', responseData)
+    socket.emit('render private messages', responseData)
   }
 
+  // send private message
   const privateMessage = async (data) => {
     const { roomId, message } = data
     const senderId = socket.user.id
@@ -204,15 +226,21 @@ module.exports = (io, socket) => {
   }
 
   return {
+    // connection
     connect,
     disconnect,
-    publicMessage,
-    leaveChatroom,
-    enterChatroom,
 
+    // public 
+    publicMessage,
+    enterChatroom,
+    leaveChatroom,
+
+    // private
     toPrivateMessage,
     enterPrivateRoom,
     privateMessage,
-    getPrivateMessage
+    getPrivateMessages,
+    leavePrivateRoom,
+
   }
 }
