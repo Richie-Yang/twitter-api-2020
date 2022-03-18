@@ -22,6 +22,7 @@ module.exports = (io, socket) => {
         })
         userSet.add(user.id)
       }
+
     }
     io.emit("users", users)
   }
@@ -61,12 +62,11 @@ module.exports = (io, socket) => {
   }
 
   const connect = () => {
-    const userSet = renderUserSet()
+    // const userSet = renderUserSet()
   }
 
   const disconnect = () => {
     // const userSet = renderUserSet()
-
     socket.broadcast.to("chatroom").emit(
       'user disconnect',
       `${socket.user.name} 已下線囉`
@@ -123,18 +123,16 @@ module.exports = (io, socket) => {
       },
       raw: true
     })
+
+    // create new room , if it does not exist
     if (!room) {
       const room = await Room.create({ userOneId, userTwoId, createdAt })
-      return console.log(`new room : ${room.id}`)
     }
-    return console.log(`exist room : ${room.id}`)
   }
 
   // enter private room , and get list
   const enterPrivateRoom = async () => {
     const userId = socket.user.id
-    console.log(socket)
-    console.log(userId)
 
     // get rooms 
     const rooms = await Room.findAll({
@@ -147,7 +145,6 @@ module.exports = (io, socket) => {
       raw: true
     })
 
-    console.log(rooms)
     if (rooms.length === 0) return socket.emit('private message', rooms)
 
     // 找出所有使用者
@@ -168,7 +165,6 @@ module.exports = (io, socket) => {
 
   const leavePrivateRoom = () => {
     const { room } = socket
-    console.log(room)
     socket.leave(room);
 
     io.to(roomId).emit(
@@ -183,26 +179,35 @@ module.exports = (io, socket) => {
     const room = await Room.findById(
       roomId, { raw: true }
     )
-    console.log(room)
-    const senderId = socket.user.id
-    const receiverId = senderId === room.userOneId ? room.userTwoId : room.userOneId
+    const selfId = socket.user.id
+    const otherId = selfId === room.userOneId ? room.userTwoId : room.userOneId
     socket.join(roomId)
 
-    renderPrivateMessages(roomId)
+    renderPrivateMessages(otherId, roomId)
   }
 
   // get history private messages
-  const renderPrivateMessages = async (roomId) => {
+  const renderPrivateMessages = async (otherId, roomId) => {
     // retrieve all public messages from database first
-    const messages = await Message.findAll({
-      include: [{ model: User, as: 'Receiver' }],
-      where: { chatType: 'private', roomId },
-      nest: true
-    })
+    const [messages, otherUser] = await Promise.all([
+      Message.findAll({
+        include: [{ model: User, as: 'Receiver' }],
+        where: {
+          chatType: 'private',
+          roomId
+        },
+        nest: true
+      }),
+      User.findById(otherId, {
+        attributes: { exclude: ['password'] },
+        raw: true
+      })
+    ])
 
-    const responseData = messages.map(message => ({
-      ...message.toJSON()
-    }))
+    const responseData = {
+      otherUser,
+      messages: messages.map(message => ({ ...message.toJSON() }))
+    }
 
     // send to  himself/herself
     socket.emit('render private messages', responseData)
