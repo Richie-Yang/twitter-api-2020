@@ -188,7 +188,7 @@ module.exports = (io, socket) => {
     const receiverId = senderId === room.userOneId ? room.userTwoId : room.userOneId
     socket.join(roomId)
 
-    renderPrivateMessages()
+    renderPrivateMessages(roomId)
   }
 
   // get history private messages

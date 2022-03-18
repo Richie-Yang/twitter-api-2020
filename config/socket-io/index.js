@@ -54,8 +54,5 @@ module.exports = (server) => {
     socket.on('private message', events.privateMessage)
     socket.on('get private messages', events.getPrivateMessages)
     socket.on('leave private room', events.leavePrivateRoom)
-
-
-
   })
 }
